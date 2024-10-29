@@ -1,7 +1,7 @@
 import { logger } from '../../../logger';
 import type { PackageFileContent } from '../types';
 import { parseSingleYaml } from '../../../util/yaml';
-import { readLocalFile } from '../../../util/fs';
+import { readLocalFile, localPathExists } from '../../../util/fs';
 import { RedHatRPMLockfile } from './schema';
 import type { RedHatRPMLockfileDefinition } from './schema';
 import type { PackageDependency } from '../types';
@@ -12,6 +12,11 @@ async function getUpdatedLockfile() {
   const cmd: string[] = [];
   const packageFileName = "rpms.in.yaml";
   const outputName = "rpms.lock.tmp.yaml";
+
+  if (await localPathExists(outputName)) {
+    // Only generate the temporary lockfile once
+    return;
+  }
 
   cmd.push(`rpm-lockfile-prototype ${packageFileName} --outfile ${outputName}`);
 
