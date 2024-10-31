@@ -1,9 +1,9 @@
-import type { UpdateArtifact, UpdateArtifactsResult } from "../types";
-import { logger } from "../../../logger";
-import { deleteLocalFile, readLocalFile } from "../../../util/fs";
+import { TEMPORARY_ERROR } from '../../../constants/error-messages';
+import { logger } from '../../../logger';
 import { exec } from '../../../util/exec';
 import type { ExecOptions } from '../../../util/exec/types';
-import { TEMPORARY_ERROR } from '../../../constants/error-messages';
+import { deleteLocalFile, readLocalFile } from '../../../util/fs';
+import type { UpdateArtifact, UpdateArtifactsResult } from '../types';
 
 export async function updateArtifacts({
   packageFileName,
@@ -12,12 +12,8 @@ export async function updateArtifacts({
   config,
 }: UpdateArtifact): Promise<UpdateArtifactsResult[] | null> {
   logger.debug(`rpm.updateArtifacts(${packageFileName})`);
-  let extension = packageFileName.split('.').pop();
-
-  // Override the package name, since the manager needs
-  // to be set to have `rpms.lock.yaml` as the package file.
-  packageFileName = `rpms.in.${extension}`;
-  let lockFileName = `rpms.lock.${extension}`;
+  const extension = packageFileName.split('.').pop();
+  const lockFileName = `rpms.lock.${extension}`;
 
   logger.debug(`RPM lock file: ${lockFileName}`);
 
@@ -34,7 +30,7 @@ export async function updateArtifacts({
 
     const execOptions: ExecOptions = {
       cwdFile: packageFileName,
-    }
+    };
 
     await exec(cmd, execOptions);
 
@@ -53,8 +49,8 @@ export async function updateArtifacts({
           type: 'addition',
           path: lockFileName,
           contents: newLockFileContent,
-        }
-      }
+        },
+      },
     ];
   } catch (err) {
     if (err.message === TEMPORARY_ERROR) {
